@@ -44,17 +44,19 @@ with col2:
     sibsp = st.number_input("Siblings/Spouses Aboard", 0, 8, 0)
     parch = st.number_input("Parents/Children Aboard", 0, 6, 0)
     fare = st.number_input("Fare", 0.0, 600.0, 32.0)
+    embarked = st.selectbox("Embarked", ["C", "Q", "S"])
 
 if st.button("Predict Survival"):
 
     input_data = pd.DataFrame({
-        "Pclass": [pclass],
-        "Sex": [sex],
-        "Age": [age],
-        "SibSp": [sibsp],
-        "Parch": [parch],
-        "Fare": [fare]
-    })
+    "Pclass": [pclass],
+    "Sex": [sex],
+    "Age": [age],
+    "SibSp": [sibsp],
+    "Parch": [parch],
+    "Fare": [fare],
+    "Embarked": [embarked]
+})
 
     prediction = model.predict(input_data)[0]
 
