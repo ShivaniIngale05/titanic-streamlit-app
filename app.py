@@ -2,19 +2,22 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-st.title(" Streamlit is working!")
-st.write("Hello Shraddha! Your Streamlit app is running successfully.")
+st.title("Titanic Survival Analysis & Prediction App")
 
-st.title("My Data App")
+st.write("This application performs exploratory data analysis on the Titanic dataset.")
 
-df = pd.read_csv("Titanic_train.csv")
-st.dataframe(df.head())
+# Load training data
+try:
+    df = pd.read_csv("Titanic_train.csv")
+    st.subheader("Training Data Preview")
+    st.dataframe(df.head())
+except FileNotFoundError:
+    st.error("Training dataset not found.")
 
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+# Upload new dataset option
+uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    df_uploaded = pd.read_csv(uploaded_file)
     st.success("File uploaded successfully!")
-    st.dataframe(df)
-else:
-    st.info("Please upload a CSV file to see the data.")
+    st.dataframe(df_uploaded.head())
