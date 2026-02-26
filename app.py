@@ -2,22 +2,28 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-st.title("Titanic Survival Analysis & Prediction App")
+st.title("Titanic Survival Analysis App")
 
-st.write("This application performs exploratory data analysis on the Titanic dataset.")
+st.write(
+    "This application performs exploratory data analysis "
+    "on the Titanic training and test datasets."
+)
 
-# Load training data
-try:
-    df = pd.read_csv("Titanic_train.csv")
-    st.subheader("Training Data Preview")
-    st.dataframe(df.head())
-except FileNotFoundError:
-    st.error("Training dataset not found.")
+# Load datasets
+train_df = pd.read_csv("Titanic_train.csv")
+test_df = pd.read_csv("Titanic_test.csv")
 
-# Upload new dataset option
-uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
+st.subheader("Training Dataset Preview")
+st.dataframe(train_df.head())
 
-if uploaded_file is not None:
-    df_uploaded = pd.read_csv(uploaded_file)
-    st.success("File uploaded successfully!")
-    st.dataframe(df_uploaded.head())
+st.subheader("Test Dataset Preview")
+st.dataframe(test_df.head())
+
+st.subheader("Basic Dataset Information")
+st.write("Training Data Shape:", train_df.shape)
+st.write("Test Data Shape:", test_df.shape)
+
+st.success("Application loaded successfully!")
+
+st.subheader("Survival Count")
+st.bar_chart(train_df["Survived"].value_counts())
