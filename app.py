@@ -1,103 +1,64 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import pickle
 
 st.set_page_config(page_title="Titanic ML Dashboard", layout="wide")
 
-# -------------------------------
 # Load Data
-# -------------------------------
 train_df = pd.read_csv("Titanic_train.csv")
-test_df = pd.read_csv("Titanic_test.csv")
 
-# -------------------------------
-# Title Section
-# -------------------------------
-st.title("🚢 Titanic Survival Analysis Dashboard")
-st.markdown("Interactive Data Analysis and Basic Insights from Titanic Dataset")
+# Load Model
+with open("titanic_model.pkl", "rb") as file:
+    model = pickle.load(file)
 
-# -------------------------------
-# Key Metrics
-# -------------------------------
-total_passengers = train_df.shape[0]
+st.title("🚢 Titanic Survival Prediction App")
+
+# --------------------------
+# Dashboard Metrics
+# --------------------------
+total = train_df.shape[0]
 survived = train_df["Survived"].sum()
-not_survived = total_passengers - survived
-survival_rate = round((survived / total_passengers) * 100, 2)
+rate = round((survived / total) * 100, 2)
 
-col1, col2, col3, col4 = st.columns(4)
-
-col1.metric("Total Passengers", total_passengers)
+col1, col2, col3 = st.columns(3)
+col1.metric("Total Passengers", total)
 col2.metric("Survived", survived)
-col3.metric("Did Not Survive", not_survived)
-col4.metric("Survival Rate (%)", survival_rate)
+col3.metric("Survival Rate (%)", rate)
 
 st.divider()
 
-# -------------------------------
-# Sidebar Filters
-# -------------------------------
-st.sidebar.header("🔎 Filter Data")
+# --------------------------
+# Prediction Section
+# --------------------------
+st.header("🎯 Live Survival Prediction")
 
-gender_filter = st.sidebar.selectbox(
-    "Select Gender",
-    ["All"] + list(train_df["Sex"].unique())
-)
+col1, col2 = st.columns(2)
 
-pclass_filter = st.sidebar.selectbox(
-    "Select Passenger Class",
-    ["All"] + list(train_df["Pclass"].unique())
-)
+with col1:
+    pclass = st.selectbox("Passenger Class", [1, 2, 3])
+    sex = st.selectbox("Sex", ["male", "female"])
+    age = st.slider("Age", 1, 80, 25)
 
-filtered_df = train_df.copy()
+with col2:
+    sibsp = st.number_input("Siblings/Spouses Aboard", 0, 8, 0)
+    parch = st.number_input("Parents/Children Aboard", 0, 6, 0)
+    fare = st.number_input("Fare", 0.0, 600.0, 32.0)
 
-if gender_filter != "All":
-    filtered_df = filtered_df[filtered_df["Sex"] == gender_filter]
+if st.button("Predict Survival"):
 
-if pclass_filter != "All":
-    filtered_df = filtered_df[filtered_df["Pclass"] == pclass_filter]
+    input_data = pd.DataFrame({
+        "Pclass": [pclass],
+        "Sex": [sex],
+        "Age": [age],
+        "SibSp": [sibsp],
+        "Parch": [parch],
+        "Fare": [fare]
+    })
 
-# -------------------------------
-# Tabs Section
-# -------------------------------
-tab1, tab2, tab3 = st.tabs(["📊 Overview", "📈 EDA", "🤖 Prediction Info"])
+    prediction = model.predict(input_data)[0]
 
-# -------------------------------
-# TAB 1 - Overview
-# -------------------------------
-with tab1:
-    st.subheader("Filtered Data Preview")
-    st.dataframe(filtered_df.head())
-
-    st.write("Filtered Data Shape:", filtered_df.shape)
-
-# -------------------------------
-# TAB 2 - EDA
-# -------------------------------
-with tab2:
-
-    st.subheader("Survival Distribution")
-
-    fig1, ax1 = plt.subplots()
-    train_df["Survived"].value_counts().plot(kind="bar", ax=ax1)
-    ax1.set_title("Survival Count (0 = No, 1 = Yes)")
-    ax1.set_xlabel("Survived")
-    ax1.set_ylabel("Count")
-    st.pyplot(fig1)
-
-    st.subheader("Survival by Gender")
-
-    fig2, ax2 = plt.subplots()
-    pd.crosstab(train_df["Sex"], train_df["Survived"]).plot(kind="bar", ax=ax2)
-    ax2.set_title("Survival by Gender")
-    st.pyplot(fig2)
-
-# -------------------------------
-# TAB 3 - Prediction Info
-# -------------------------------
-with tab3:
-    st.subheader("Model Section (Expandable)")
-    st.info("You can integrate Logistic Regression or other ML models here.")
-    st.write("This section is ready for adding live prediction functionality.")
-
-st.success("Dashboard Loaded Successfully 🚀")
+    if prediction == 1:
+        st.success("✅ The passenger is likely to Survive")
+    else:
+        st.error("❌ The passenger is likely NOT to Survive")
